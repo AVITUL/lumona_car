@@ -1,2 +1,8 @@
 *.env
+*.pdf
 .venv
+*.txn
+*.manifest
+*.lance
+*.pyc
+*.md

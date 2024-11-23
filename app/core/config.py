@@ -3,8 +3,11 @@ import os
 from typing import NamedTuple
 
 class Config(NamedTuple):
-    openai_key: str | None = None
-    gemini_api_key: str | None = None
+    chat_model: str
+    lancedb_uri: str 
+    rag_table_name: str
+    openai_key: str 
+    gemini_api_key: str
 
 
 def create_config_from_env_file(config_class):
