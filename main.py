@@ -2,7 +2,7 @@ import logging
 
 from fastapi import FastAPI
 
-from app.routers import indexer, retriever
+from app.routers import index_router, retrieve_router
 
 app = FastAPI()
 
@@ -11,5 +11,5 @@ logger = logging.getLogger(__name__)
 
 logger.info("Starting the application...")
 
-app.include_router(indexer.router, prefix="/indexing")
-app.include_router(retriever.router, prefix="/search")
+app.include_router(index_router.router, prefix="/indexing")
+app.include_router(retrieve_router.router, prefix="/search")

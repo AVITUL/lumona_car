@@ -12,7 +12,7 @@ class EmbeddingHandler:
             self.model = CONFIG.openai_embedding_model
         elif embedding_model == "huggingface":
             self.huggingface_client = HuggingFaceEmbeddings(
-                model=CONFIG.huggingface_embedding_model
+                model_name=CONFIG.huggingface_embedding_model
             )
         else:
             raise ValueError(f"Invalid embedding model: {embedding_model}")
