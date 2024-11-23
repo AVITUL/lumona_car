@@ -48,7 +48,7 @@ class Retriever:
             answer_md += f"[{ref}]({ref})\n"  # TODO: add parent document name to the database, retrieve it and show here.
         return answer_md
 
-    def _answer_question(self, question: str, similar_docs_df: pd.DataFrame) -> str:
+    def _answer_question(self, question: str, similar_docs_df: str) -> str:
         llm_response: RetrieverResponseSchema = llm_caller.generate_structured_response(
             output_schema=RetrieverResponseSchema,
             system_prompt=answer_question_prompt.PROMPT,
@@ -65,7 +65,10 @@ class Retriever:
             raise ValueError("Question embedding is None")
         similar_docs = db_utils.vector_search(question_embedding, where_clause)
         similar_docs_df = pd.DataFrame(similar_docs)
-        answer = self._answer_question(question, similar_docs_df)
+        input_documents = similar_docs_df[["text", "type", "id"]].to_json(
+            orient="records"
+        )
+        answer = self._answer_question(question, input_documents)
         return answer
 
 

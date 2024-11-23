@@ -7,9 +7,15 @@ class Config(NamedTuple):
     lancedb_uri: str
     rag_table_name: str
     openai_key: str
+    anthropic_api_key: str
+    groq_api_key: str
     gemini_api_key: str
     default_embedding_model: str
     openai_embedding_model: str
+    default_chat_model: str
+    default_openai_chat_model: str
+    default_anthropic_chat_model: str
+    default_groq_chat_model: str
     huggingface_embedding_model: str
     retrieval_strategy: str
     vector_search_limit: int

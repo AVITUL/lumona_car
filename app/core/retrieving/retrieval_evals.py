@@ -10,6 +10,7 @@ class EvalRetrieval:
         # fetch questions that may contain information from other paragraphs.
         # do the retrieval
         # match paragraphs.
+        # TODO: model evaluation.
         pass
 
     def _choose_random_paragraphs(

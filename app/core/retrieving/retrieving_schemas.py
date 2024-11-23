@@ -1,4 +1,4 @@
-from pydantic.v1 import BaseModel
+from pydantic import BaseModel
 
 
 class AnswerSentenceSchema(BaseModel):
@@ -12,6 +12,10 @@ class RetrieverResponseSchema(BaseModel):
     question_id: str
     retrieved_document_ids: list[str]
     answer_text: list[AnswerSentenceSchema]
+
+
+class AnswerLLMResponseSchema(BaseModel):
+    sentences: list[AnswerSentenceSchema]
 
 
 class QuerySchema(BaseModel):

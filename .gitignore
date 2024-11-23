@@ -6,3 +6,5 @@
 *.lance
 *.pyc
 *.md
+*.ipynb 
+# notebooks may contain keys. 
