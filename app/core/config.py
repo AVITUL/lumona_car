@@ -1,13 +1,18 @@
-import os 
-
+import os
 from typing import NamedTuple
+
 
 class Config(NamedTuple):
     chat_model: str
-    lancedb_uri: str 
+    lancedb_uri: str
     rag_table_name: str
-    openai_key: str 
+    openai_key: str
     gemini_api_key: str
+    default_embedding_model: str
+    openai_embedding_model: str
+    huggingface_embedding_model: str
+    retrieval_strategy: str
+    vector_search_limit: int
 
 
 def create_config_from_env_file(config_class):
@@ -17,11 +22,12 @@ def create_config_from_env_file(config_class):
         if value is None:
             raise ValueError(f"Missing environment variable: {field.upper()}")
         field_type = config_class.__annotations__[field]
-        try: 
+        try:
             value = field_type(value) if value is not None else None
         except ValueError as e:
             raise ValueError(f"Invalid value for {field}: {value}") from e
         fields[field] = value
     return config_class(**fields)
+
 
 CONFIG: Config = create_config_from_env_file(Config)
