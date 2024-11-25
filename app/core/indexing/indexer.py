@@ -2,8 +2,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from core.db_store.db_ops import db_utils
-from core.parsing.parser import parser
+from app.core.db_store.db_ops import db_utils
+from app.core.parsing.parser import parser
 
 
 class Indexer:

@@ -11,31 +11,34 @@ from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
-from core.config import CONFIG
+from app.core.config import CONFIG
 
 
 class LLMCaller:
     def __init__(self):
-        if CONFIG.default_chat_model == "openai":
-            self.chat_model = ChatOpenAI(
-                model=CONFIG.default_openai_chat_model,
-                temperature=0.1,
-                api_key=CONFIG.openai_key,  # type: ignore
-            )
-        elif CONFIG.default_chat_model == "anthropic":
-            self.chat_model = ChatAnthropic(
-                model_name=CONFIG.default_anthropic_chat_model,
-                timeout=10,
-                api_key=CONFIG.anthropic_api_key,  # type: ignore
-            )
-        elif CONFIG.default_chat_model == "groq":
-            self.chat_model = ChatGroq(
-                model=CONFIG.default_groq_chat_model,
-                temperature=0.1,
-                api_key=CONFIG.groq_api_key,  # type: ignore
-            )
-        else:
-            raise ValueError(f"Invalid chat model: {CONFIG.default_chat_model}")
+        self.chat_model = None
+        try:
+            if CONFIG.default_chat_model == "openai":
+                self.chat_model = ChatOpenAI(
+                    model="gpt-4o",  # TODO: check why we are not able to parse from config file? for this part? -- high priority.
+                    temperature=0.1,
+                    api_key=CONFIG.openai_key,  # type: ignore
+                )
+            elif CONFIG.default_chat_model == "anthropic":
+                self.chat_model = ChatAnthropic(
+                    model_name=CONFIG.default_anthropic_chat_model,
+                    timeout=10,
+                    api_key=CONFIG.anthropic_api_key,  # type: ignore
+                )
+            elif CONFIG.default_chat_model == "groq":
+                self.chat_model = ChatGroq(
+                    model=CONFIG.default_groq_chat_model,
+                    temperature=0.1,
+                    api_key=CONFIG.groq_api_key,  # type: ignore
+                )
+        except Exception as e:
+            logger.error(f"Error initializing chat model: {e}")
+            raise e
 
     def generate_structured_response(
         self, output_schema: Type[BaseModel], system_prompt: str, **kwargs
@@ -46,6 +49,10 @@ class LLMCaller:
             ).format(
                 **kwargs
             )  # type: ignore
+            if not self.chat_model:
+                self.chat_model = ChatOpenAI(
+                    model="gpt-4o", api_key=CONFIG.openai_key  # type: ignore
+                )  # TODO: get rid of this part. this fallback should be in the init itself.
             chat_model_with_struct = self.chat_model.with_structured_output(
                 schema=output_schema, method="json_mode"
             )

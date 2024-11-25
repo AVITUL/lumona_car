@@ -19,9 +19,10 @@ class Config(NamedTuple):
     huggingface_embedding_model: str
     retrieval_strategy: str
     vector_search_limit: int
+    embedding_length: int
 
 
-def create_config_from_env_file(config_class):
+def create_config_from_env(config_class):
     fields = {}
     for field in config_class._fields:
         value = os.getenv(field.upper())
@@ -36,4 +37,4 @@ def create_config_from_env_file(config_class):
     return config_class(**fields)
 
 
-CONFIG: Config = create_config_from_env_file(Config)
+CONFIG: Config = create_config_from_env(Config)

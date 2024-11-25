@@ -125,8 +125,10 @@ class Parser:
                 )
                 logger.info(f"Parsed *IMAGE*: {page_number}")
                 parsed_documents.append(image_data)
-        parsed_documents = self._add_embeddings(parsed_documents)
-        # TODO: add embeddings only if the type is PAGE.
+        parsed_documents = [
+            doc if doc.type != "PAGE" else self._add_embeddings([doc])[0]
+            for doc in parsed_documents
+        ]
         # TODO: find how to embed other two types. image description will be fine, what about tables?
         return parsed_documents
 
