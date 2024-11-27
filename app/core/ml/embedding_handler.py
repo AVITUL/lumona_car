@@ -35,7 +35,7 @@ class EmbeddingHandler:
     def embed_image(self, image: str):
         try:
             description: str = llm_caller.get_image_description(image)
-            return self.embed_text(description)
+            return (self.embed_text(description), description)
 
         except Exception as e:
             raise Exception(f"Error embedding image: {str(e)}")

@@ -81,5 +81,17 @@ class DBStore:
             logger.exception(f"Error in vector_search: {e}")
             raise e
 
+    def get_document_by_ref(self, ref: str):
+        try:
+            return (
+                self.rag_table.search()
+                .where(f"id == '{ref}'")
+                .select(["text"])
+                .to_list()
+            )
+        except Exception as e:
+            logger.exception(f"Error in get_document_by_ref: {e}")
+            raise e
+
 
 db_utils = DBStore()

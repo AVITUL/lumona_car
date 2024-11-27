@@ -59,11 +59,12 @@ class Parser:
         return documents
 
     def _embed_image(self, documents: List[Document]) -> List[Document]:
-        embeddings = [
-            embedding_handler.embed_image(doc.text.split(",")[1]) for doc in documents
-        ]
-        for i, doc in enumerate(documents):
-            doc.embedding = embeddings[i]
+        for doc in documents:
+            embedding, description = embedding_handler.embed_image(
+                doc.text.split(",")[1]
+            )
+            doc.embedding = embedding
+            doc.text = description
         return documents
 
     def _embed_table(self, documents: List[Document]) -> List[Document]:
@@ -139,20 +140,21 @@ class Parser:
                 )
                 logger.info(f"Parsed *IMAGE*: {page_number}")
                 parsed_documents.append(image_data)
-        parsed_documents = [
-            (
-                self._add_embeddings([doc])[0]
-                if doc.type == "PAGE"
-                else (
-                    self._embed_image([doc])[0]
-                    if doc.type == "FIGURE"
-                    else self._embed_table([doc])[0] if doc.type == "TABLE" else doc
-                )
-            )
-            for doc in parsed_documents
-        ]
-        # TODO: find how to embed other two types. image description will be fine, what about tables?
-        return parsed_documents
+        embedded_documents = []
+        for doc in parsed_documents:
+            if doc.type == "PAGE":
+                embedded_doc = self._add_embeddings([doc])[0]
+                print("got embedding of page")
+            elif doc.type == "FIGURE":
+                embedded_doc = self._embed_image([doc])[0]
+                print("got embedding of image")
+            elif doc.type == "TABLE":
+                embedded_doc = self._embed_table([doc])[0]
+                print("got embedding of table")
+            else:
+                embedded_doc = doc
+            embedded_documents.append(embedded_doc)
+        return embedded_documents
 
 
 parser = Parser()

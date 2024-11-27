@@ -5,6 +5,6 @@
 *.manifest
 *.lance
 *.pyc
-*.md
+# *.md
 *.ipynb 
 # notebooks may contain keys. 

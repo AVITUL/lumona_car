@@ -36,7 +36,17 @@ A few considerations for further quality improvement are as follows:
         - 
     b. Using multiple llms \
         - Eg: to check if a question is answerable a Gemma would be enough, for writing the WHERE clause Anthropic maybe a good candidate, and to write answer openai is well suited.
+4. Optimisations in code\
+    a. download huggingface model if necessary at the start of the job. \
+    b. show the number of documents indexed on page load. 
 
+### setup 
+`git clone https://github.com/AVITUL/lumona_car`
+`cd lumona_car`
+`pip install -r requirements.txt`
+`streamlit run .\frontend\streamlit_app.py`
+
+- please index a document before querying. 
 
 ### components 
 1. indexing job 
@@ -44,10 +54,10 @@ A few considerations for further quality improvement are as follows:
     - ~~identify tables and images ~~
     - embed text \
         ~~[ ] openai and hugging face embeddings ~~
-        [ ] custom logic to embed tables and images
+        ~~[ ] custom logic to embed tables and images~~
     - store in db \
         ~~[ ] run time db -- lancedb~~ \
-        [ ] persistant db like mongo. 
+        ~~[ ] persistant db like mongo. ~~
 2. retrieval job 
     - ~~check if question is answerable ~~
     - ~~get question embeddings~~  \

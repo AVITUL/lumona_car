@@ -4,7 +4,8 @@ from typing import Any, Tuple
 import pandas as pd
 
 from app.core.config import CONFIG
-from app.core.db_store.db_mongo import db_mongo
+
+# from app.core.db_store.db_mongo import db_mongo
 from app.core.db_store.db_ops import db_utils
 from app.core.ml.embedding_handler import embedding_handler
 from app.core.ml.llm_handler import llm_caller
@@ -48,17 +49,28 @@ class Retriever:
         answer_md = ""
         refs_count = 1
         final_references_list = []
+        ref_map = {}
         for answer_sentence in llm_response.sentences:
             answer_md += f"{answer_sentence.sentence_text}\n"
             if answer_sentence.sentence_document_ref:
-                answer_md += (
-                    f"[{refs_count}]({answer_sentence.sentence_document_ref})\n"
-                )
-                refs_count += 1
+                if answer_sentence.sentence_document_ref in ref_map:
+                    ref_num = ref_map[answer_sentence.sentence_document_ref]
+                else:
+                    ref_num = refs_count
+                    ref_map[answer_sentence.sentence_document_ref] = refs_count
+                    refs_count += 1
+                answer_md += f"[{ref_num}]({answer_sentence.sentence_document_ref})\n"
         final_references_list.append(answer_sentence.sentence_document_ref)
         answer_md += "\n\nReferences:\n"
         for ref in final_references_list:
-            answer_md += f"[{ref}]({ref})\n"  # TODO: add parent document name to the database, retrieve it and show here.
+            try:
+                doc = db_utils.get_document_by_ref(ref)
+                if doc:
+                    answer_md += (
+                        f"<details><raw_data>{ref}</raw_data>\n\n{doc}\n\n</details>\n"
+                    )
+            except Exception as e:
+                logger.exception(f"Error fetching document {ref}: {e}")
         return answer_md
 
     def _answer_question(self, question: str, similar_docs_df: Any) -> str:
@@ -110,10 +122,11 @@ class Retriever:
             input_documents = ""
             logger.info(f"Vector search")
             if CONFIG.database_type == "mongo":
-                similar_docs = db_mongo.get_documents_with_vector_search(
-                    question_embedding
-                )
-                input_documents = similar_docs
+                # similar_docs = db_mongo.get_documents_with_vector_search(
+                #     question_embedding
+                # )
+                # input_documents = similar_docs
+                pass
             else:
                 similar_docs = db_utils.vector_search(question_embedding)
                 similar_docs_df = pd.DataFrame(similar_docs)
