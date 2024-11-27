@@ -1,12 +1,21 @@
+from typing import Tuple
+
 import pandas as pd
-from pydantic.v1 import BaseModel
 
 from app.core.config import CONFIG
 from app.core.db_store.db_ops import db_utils
 from app.core.ml.embedding_handler import embedding_handler
 from app.core.ml.llm_handler import llm_caller
-from app.core.ml.prompts import answer_question_prompt, build_query_prompt
-from app.core.retrieving.retrieving_schemas import AnswerLLMResponseSchema, QuerySchema
+from app.core.ml.prompts import (
+    answer_question_prompt,
+    build_query_prompt,
+    is_answerable_prompt,
+)
+from app.core.retrieving.retrieving_schemas import (
+    AnswerLLMResponseSchema,
+    IsAnswerableSchema,
+    QuerySchema,
+)
 
 
 class Retriever:
@@ -58,9 +67,21 @@ class Retriever:
         answer = self._answer_to_md(llm_response)
         return answer
 
+    def _is_question_answerable(self, question: str, context: str) -> Tuple[bool, str]:
+        llm_response: IsAnswerableSchema = llm_caller.generate_structured_response(
+            output_schema=IsAnswerableSchema,
+            system_prompt=is_answerable_prompt.PROMPT,
+            question=question,
+        )  # type: ignore
+        print(llm_response)
+        return llm_response.is_answerable, llm_response.reasoning
+
     def get_answer(self, question: str, context: str) -> str:
+        is_question_answerable, reason = self._is_question_answerable(question, context)
+        if not is_question_answerable:
+            return f"I am sorry, I am not able to answer that question. {reason}"
         question_embedding = embedding_handler.embed_text(question)
-        # where_clause = self._build_query(question)
+        where_clause = self._build_query(question)
         if question_embedding is None:
             raise ValueError("Question embedding is None")
         similar_docs = db_utils.vector_search(question_embedding)

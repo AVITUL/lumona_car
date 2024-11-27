@@ -8,9 +8,16 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+from pydantic import BaseModel
+
+
+class GetAnswerRequest(BaseModel):
+    query: str
+    context: str
+
 
 @router.post("/get-answer")
-async def get_answer(query: str, context: str):
-    logger.info(f"Getting answer for query: {query}")
-    answer = retriever.get_answer(query, context)
+async def get_answer(request: GetAnswerRequest):
+    logger.info(f"Getting answer for query: {request.query}")
+    answer = retriever.get_answer(request.query, request.context)
     return {"answer": answer}

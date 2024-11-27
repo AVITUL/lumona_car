@@ -49,7 +49,7 @@ class DBStore:
     def vector_search(self, query_embedding: list[float], where_clause: str = ""):
         results = (
             self.rag_table.search(query_embedding, vector_column_name="embedding")
-            # .where(where_clause) # TODO: reintroduce this. -- high priority.
+            # .where(where_clause)  # TODO: reintroduce this. -- high priority.
             .limit(CONFIG.vector_search_limit).to_list()
         )
         return results

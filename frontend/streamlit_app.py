@@ -48,6 +48,7 @@ with st.sidebar:
             with st.spinner("Indexing document..."):
                 indexer.index_document(str(temp_path))
             st.success(f"Indexed: {uploaded_file.name}")
+            temp_path.unlink()
 
             st.session_state[file_key] = True
 

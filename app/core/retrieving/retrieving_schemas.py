@@ -24,3 +24,8 @@ class QuerySchema(BaseModel):
     car_model: str | None = None
     tags: list[str]
     type: str
+
+
+class IsAnswerableSchema(BaseModel):
+    is_answerable: bool
+    reasoning: str

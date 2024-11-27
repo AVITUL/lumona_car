@@ -52,7 +52,7 @@ class LLMCaller:
             if not self.chat_model:
                 self.chat_model = ChatOpenAI(
                     model="gpt-4o", api_key=CONFIG.openai_key  # type: ignore
-                )  # TODO: get rid of this part. this fallback should be in the init itself.
+                )
             chat_model_with_struct = self.chat_model.with_structured_output(
                 schema=output_schema, method="json_mode"
             )
