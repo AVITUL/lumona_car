@@ -32,4 +32,9 @@ class ParentDocument(BaseModel):
     type: str
 
 
+class CarSchema(BaseModel):
+    id: str
+    name: str
+
+
 # TODO: think if we are to use a hierarchical clustering how these will change.

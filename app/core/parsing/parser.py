@@ -58,6 +58,20 @@ class Parser:
             doc.embedding = embeddings[i]
         return documents
 
+    def _embed_image(self, documents: List[Document]) -> List[Document]:
+        embeddings = [
+            embedding_handler.embed_image(doc.text.split(",")[1]) for doc in documents
+        ]
+        for i, doc in enumerate(documents):
+            doc.embedding = embeddings[i]
+        return documents
+
+    def _embed_table(self, documents: List[Document]) -> List[Document]:
+        embeddings = [embedding_handler.embed_table(doc.text) for doc in documents]
+        for i, doc in enumerate(documents):
+            doc.embedding = embeddings[i]
+        return documents
+
     def parse_pdf_document(
         self, document_path: str, prase_strategy: str = "PAGE"
     ) -> List[Document]:
@@ -126,7 +140,15 @@ class Parser:
                 logger.info(f"Parsed *IMAGE*: {page_number}")
                 parsed_documents.append(image_data)
         parsed_documents = [
-            doc if doc.type != "PAGE" else self._add_embeddings([doc])[0]
+            (
+                self._add_embeddings([doc])[0]
+                if doc.type == "PAGE"
+                else (
+                    self._embed_image([doc])[0]
+                    if doc.type == "FIGURE"
+                    else self._embed_table([doc])[0] if doc.type == "TABLE" else doc
+                )
+            )
             for doc in parsed_documents
         ]
         # TODO: find how to embed other two types. image description will be fine, what about tables?

@@ -2,6 +2,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from openai import OpenAI
 
 from app.core.config import CONFIG
+from app.core.ml.llm_handler import llm_caller
 
 
 class EmbeddingHandler:
@@ -30,6 +31,21 @@ class EmbeddingHandler:
             return self._embed_text_openai(text)
         elif self.embedding_model == "huggingface":
             return self._embed_text_huggingface(text)
+
+    def embed_image(self, image: str):
+        try:
+            description: str = llm_caller.get_image_description(image)
+            return self.embed_text(description)
+
+        except Exception as e:
+            raise Exception(f"Error embedding image: {str(e)}")
+
+    def embed_table(self, table: str):
+        try:
+            table_description: str = llm_caller.get_table_description(table)
+            return self.embed_text(table_description)
+        except Exception as e:
+            raise Exception(f"Error embedding table: {str(e)}")
 
 
 embedding_handler = EmbeddingHandler(CONFIG.default_embedding_model)

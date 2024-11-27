@@ -3,10 +3,10 @@ from typing import Any, Type
 
 from langchain.output_parsers import PydanticOutputParser
 from langchain_anthropic import ChatAnthropic
+from langchain_core.messages import HumanMessage
 from langchain_core.prompts import SystemMessagePromptTemplate
 from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
-from openai import OpenAI
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -64,6 +64,36 @@ class LLMCaller:
             raise e
 
     # TODO: test with other models in api mode.
+
+    def get_image_description(self, image_data: str) -> str:
+        model = ChatOpenAI(model="gpt-4o", api_key=CONFIG.openai_key)  # type: ignore
+        message = HumanMessage(
+            content=[
+                {
+                    "type": "text",
+                    "text": " the image you see is taken from a car manual. it may include instructions, car part labels, or some view of a description. in any case, give a short description of the content. if there is text written such as labels, add them in the end in a list of strings. if no text or labels are present, do not mention anything about them.  ",
+                },
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:image/jpeg;base64,{image_data}"},
+                },
+            ]
+        )
+        response = model.invoke([message])
+        return str(response.content)
+
+    def get_table_description(self, table: str) -> str:
+        model = ChatOpenAI(model="gpt-4o", api_key=CONFIG.openai_key)  # type: ignore
+        message = HumanMessage(
+            content=[
+                {
+                    "type": "text",
+                    "text": f"the following table is taken from a car manual. it may contain comparision of different models, or a list of components, or care instructions. we want an overview of the table, that does not state exact information contained in the table but a high level description of the content which will help us in getting a summarised view of the table. we will use this information to decide if we want to dive deeper into the information contained in the table.: {table}",
+                }
+            ]
+        )
+        response = model.invoke([message])
+        return str(response.content)
 
 
 llm_caller = LLMCaller()

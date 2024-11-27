@@ -20,6 +20,7 @@ class Config(NamedTuple):
     retrieval_strategy: str
     vector_search_limit: int
     embedding_length: int
+    database_type: str
 
 
 def create_config_from_env(config_class):

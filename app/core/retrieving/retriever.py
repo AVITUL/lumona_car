@@ -1,9 +1,10 @@
 import logging
-from typing import Tuple
+from typing import Any, Tuple
 
 import pandas as pd
 
 from app.core.config import CONFIG
+from app.core.db_store.db_mongo import db_mongo
 from app.core.db_store.db_ops import db_utils
 from app.core.ml.embedding_handler import embedding_handler
 from app.core.ml.llm_handler import llm_caller
@@ -60,7 +61,7 @@ class Retriever:
             answer_md += f"[{ref}]({ref})\n"  # TODO: add parent document name to the database, retrieve it and show here.
         return answer_md
 
-    def _answer_question(self, question: str, similar_docs_df: str) -> str:
+    def _answer_question(self, question: str, similar_docs_df: Any) -> str:
         llm_response: AnswerLLMResponseSchema = llm_caller.generate_structured_response(
             output_schema=AnswerLLMResponseSchema,
             system_prompt=answer_question_prompt.PROMPT,
@@ -106,13 +107,19 @@ class Retriever:
             if question_embedding is None:
                 raise ValueError("Question embedding is None")
 
+            input_documents = ""
             logger.info(f"Vector search")
-            similar_docs = db_utils.vector_search(question_embedding)
-            similar_docs_df = pd.DataFrame(similar_docs)
-            input_documents = similar_docs_df[["text", "type", "id"]].to_json(
-                orient="records"
-            )
-
+            if CONFIG.database_type == "mongo":
+                similar_docs = db_mongo.get_documents_with_vector_search(
+                    question_embedding
+                )
+                input_documents = similar_docs
+            else:
+                similar_docs = db_utils.vector_search(question_embedding)
+                similar_docs_df = pd.DataFrame(similar_docs)
+                input_documents = similar_docs_df[["text", "type", "id"]].to_json(
+                    orient="records"
+                )
             logger.info(f"Got similar docs {len(similar_docs)}")
             answer = self._answer_question(question, input_documents)
             return answer
