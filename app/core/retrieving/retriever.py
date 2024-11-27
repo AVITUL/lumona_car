@@ -1,3 +1,4 @@
+import logging
 from typing import Tuple
 
 import pandas as pd
@@ -16,6 +17,8 @@ from app.core.retrieving.retrieving_schemas import (
     IsAnswerableSchema,
     QuerySchema,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class Retriever:
@@ -68,29 +71,54 @@ class Retriever:
         return answer
 
     def _is_question_answerable(self, question: str, context: str) -> Tuple[bool, str]:
-        llm_response: IsAnswerableSchema = llm_caller.generate_structured_response(
-            output_schema=IsAnswerableSchema,
-            system_prompt=is_answerable_prompt.PROMPT,
-            question=question,
-        )  # type: ignore
-        print(llm_response)
-        return llm_response.is_answerable, llm_response.reasoning
+        try:
+            llm_response: IsAnswerableSchema = llm_caller.generate_structured_response(
+                output_schema=IsAnswerableSchema,
+                system_prompt=is_answerable_prompt.PROMPT,
+                question=question,
+            )  # type: ignore
+            logger.info(
+                f"Is question answerable: {llm_response.is_answerable}, reasoning: {llm_response.reasoning}"
+            )
+            return llm_response.is_answerable, llm_response.reasoning
+        except Exception as e:
+            logger.exception(f"Error in is_question_answerable: {e}")
+            return False, "I am sorry, I am not able to answer that question."
 
     def get_answer(self, question: str, context: str) -> str:
-        is_question_answerable, reason = self._is_question_answerable(question, context)
-        if not is_question_answerable:
-            return f"I am sorry, I am not able to answer that question. {reason}"
-        question_embedding = embedding_handler.embed_text(question)
-        where_clause = self._build_query(question)
-        if question_embedding is None:
-            raise ValueError("Question embedding is None")
-        similar_docs = db_utils.vector_search(question_embedding)
-        similar_docs_df = pd.DataFrame(similar_docs)
-        input_documents = similar_docs_df[["text", "type", "id"]].to_json(
-            orient="records"
-        )
-        answer = self._answer_question(question, input_documents)
-        return answer
+        try:
+            logger.info(f"Checking if question is answerable")
+            is_question_answerable, reason = self._is_question_answerable(
+                question, context
+            )
+            if not is_question_answerable:
+                return f"I am sorry, I am not able to answer that question. {reason}"
+
+            logger.info(f"Embedding question")
+            try:
+                question_embedding = embedding_handler.embed_text(question)
+            except Exception as e:
+                logger.exception(f"Error in embedding question: {e}")
+                return "Unknown error."
+
+            logger.info(f"Building query")
+            where_clause = self._build_query(question)  # add after testing.
+            if question_embedding is None:
+                raise ValueError("Question embedding is None")
+
+            logger.info(f"Vector search")
+            similar_docs = db_utils.vector_search(question_embedding)
+            similar_docs_df = pd.DataFrame(similar_docs)
+            input_documents = similar_docs_df[["text", "type", "id"]].to_json(
+                orient="records"
+            )
+
+            logger.info(f"Got similar docs {len(similar_docs)}")
+            answer = self._answer_question(question, input_documents)
+            return answer
+        except Exception as e:
+            logger.error(f"Error in get_answer: {e}")
+            return "Unknown error."
 
 
 retriever = Retriever()

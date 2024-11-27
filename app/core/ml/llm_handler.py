@@ -40,6 +40,7 @@ class LLMCaller:
             logger.error(f"Error initializing chat model: {e}")
             raise e
 
+    # add retry
     def generate_structured_response(
         self, output_schema: Type[BaseModel], system_prompt: str, **kwargs
     ) -> Any:

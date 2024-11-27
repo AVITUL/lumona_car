@@ -12,8 +12,12 @@ class Indexer:
 
     def index_document(self, document_path: str):
         documents = parser.parse_pdf_document(document_path)
-        db_utils.store_documents(documents)
-        logger.info(f"Indexed document: {document_path}")
+        try:
+            db_utils.store_documents(documents)
+            logger.info(f"Indexed document: {document_path}")
+        except Exception as e:
+            logger.exception(f"Error in index_document: {e}")
+            raise e
 
 
 indexer = Indexer()

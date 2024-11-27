@@ -1,8 +1,11 @@
+import logging
 import os
 import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 
 def load_env():
@@ -44,9 +47,10 @@ with st.sidebar:
             temp_path = temp_dir / uploaded_file.name
             with open(temp_path, "wb") as f:
                 f.write(uploaded_file.getvalue())
-
+            logger.info(f"Indexing document: {uploaded_file.name}")
             with st.spinner("Indexing document..."):
                 indexer.index_document(str(temp_path))
+            logger.info(f"Indexed: {uploaded_file.name}")
             st.success(f"Indexed: {uploaded_file.name}")
             temp_path.unlink()
 
@@ -65,12 +69,12 @@ if question := st.chat_input("Ask a question..."):
 
     with st.chat_message("assistant"):
         status_placeholder = st.empty()
-
+        logger.info(f"Building query")
         status_placeholder.text("Building query...")
         answer = retriever.get_answer(
             question, ""
         )  # Context parameter is empty for now
-
+        logger.info(f"Sending answer to user")
         st.session_state.messages.append({"role": "assistant", "content": answer})
         status_placeholder.markdown(answer)
 
